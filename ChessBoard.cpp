@@ -1,6 +1,7 @@
 #include "ChessBoard.h"
 #include <iostream>
 #include <assert.h>
+#include "Figures/FigureBase.h"
 #include "Figures/FigureBishop.h"
 #include "Figures/FigureKing.h"
 #include "Figures/FigureKnight.h"
@@ -112,11 +113,11 @@ void ChessBoard::UndoLastMove()
         return;
     }
 
-    const auto& currentPosition = mLastKilledFigure->GetLastPosition();
+    const auto currentPosition = mLastMovedFigure->GetLastPosition();
     const uint16_t currentRow = currentPosition.first;
     const uint16_t currentColumn = currentPosition.second;
 
-    mLastKilledFigure->SetLastPosition(mLastFigPos.first, mLastFigPos.second);
+    mLastMovedFigure->SetLastPosition(mLastFigPos.first, mLastFigPos.second);
 
     mCells[mLastFigPos.first][mLastFigPos.second] = std::move(mCells[currentRow][currentColumn]);
     if (mLastKilledFigure)
@@ -147,6 +148,46 @@ FigureBase* ChessBoard::GetCellFigure(uint16_t row, uint16_t column) const
     }
 
     return mCells[row][column].get();
+}
+
+void ChessBoard::PromotePawn(uint16_t row, uint16_t column)
+{
+    FigureType type = FigureType::Invalid;
+
+    string userInput;
+    while (type == FigureType::Invalid)
+    {
+        cout << "Please select new figure for pawn promotion(R,B,N or Q): ";
+        cin >> userInput;
+
+        if (userInput == "Q")
+        {
+            type = FigureType::Queen;
+        }
+        else if (userInput == "B")
+        {
+            type = FigureType::Bishop;
+        }
+        else if (userInput == "B")
+        {
+            type = FigureType::Knight;
+        }
+        else if (userInput == "R")
+        {
+            type = FigureType::Rook;
+        }
+        else
+        {
+            cout << "Couldn't undestand what you mean...";
+        }
+
+        userInput.clear();
+    }
+
+    FigureBase* promotionPawn = GetCellFigure(row, column);
+    unique_ptr<FigureBase> newFigure = CreateFigure(type, promotionPawn->GetTeam(), row, column);
+
+    mCells[row][column] = std::move(newFigure);
 }
 
 void ChessBoard::AddLine(const string& pattern)
@@ -186,6 +227,94 @@ unique_ptr<FigureBase> ChessBoard::CreateFigure(FigureType type, ChessTeam team,
     }
 
     return freshFigure;
+}
+
+bool ChessBoard::IsInCheck(ChessTeam team)
+{
+    vector<FigureBase*> figures;
+    figures.reserve(16);
+
+    uint16_t kingRow = 0u;
+    uint16_t kingCol = 0u;
+    for (const auto& row : mCells)
+    {
+        for (const auto& figure : row)
+        {
+            if (!figure)
+            {
+                continue;
+            }
+
+            if (figure->GetTeam() == team)
+            {
+                if (figure->GetFigureType() == FigureType::King)
+                {
+                    const auto location = figure->GetLastPosition();
+                    kingRow = location.first;
+                    kingCol = location.second;
+                }
+            }
+            else
+            {
+                figures.push_back(figure.get());
+            }
+        }
+    }
+
+    for (auto* figure : figures)
+    {
+        if (figure->CanMoveTo(kingRow, kingCol))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+GameStatus ChessBoard::GetGameStatus(ChessTeam team)
+{
+    bool isInCheck = IsInCheck(team);
+
+    vector<FigureBase*> figures;
+    figures.reserve(16);
+
+    GetTeamFigures(team, figures);
+
+    for (auto* figure : figures)
+    {
+        if (figure->CanMove())
+        {
+            return GameStatus::InGame;
+        }
+    }
+
+    GameStatus result = GameStatus::CheckMate;
+    if (!isInCheck)
+    {
+        result = GameStatus::StaleMate;
+    }
+
+    return result;
+}
+
+void ChessBoard::GetTeamFigures(ChessTeam team, vector<FigureBase*>& figures) const
+{
+    for (const auto& row : mCells)
+    {
+        for (const auto& figure : row)
+        {
+            if (!figure)
+            {
+                continue;
+            }
+
+            if (figure->GetTeam() == team)
+            {
+                figures.push_back(figure.get());
+            }
+        }
+    }
 }
 
 void ChessBoard::FillBoardWithFigure(FigureType type, uint16_t startingRow, uint16_t startingCol, bool doubleCopy)

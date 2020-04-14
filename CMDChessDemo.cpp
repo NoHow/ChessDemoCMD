@@ -24,42 +24,91 @@ int main()
 {
     ChessBoard chessBoard;
 
-    ChessTeam mCurrentPlayer = ChessTeam::White;
+    ChessTeam currentPlayer = ChessTeam::White;
+    ChessTeam winner = ChessTeam::Invalid;
+    GameStatus gameStatus = GameStatus::InGame;
 
     string userInput;
     userInput.reserve(32);
-    while (true)
+    while (gameStatus == GameStatus::InGame)
     {
         chessBoard.DrawBoard();
         
-        cout << SELECT_FIGURE_TEXT;
-        pair<uint16_t, uint16_t> figurePos = SelectCell(userInput);
-        FigureBase* figure = chessBoard.GetCellFigure(figurePos.first, figurePos.second);
-        if (figure && figure->GetTeam() == mCurrentPlayer)
+        FigureBase* figure = nullptr;
+        while (!figure)
         {
-            bool isMoveValid = false;
-            while (!isMoveValid)
-            {
-                cout << SELECT_MOVE_TEXT;
-                pair<uint16_t, uint16_t> movePos = SelectCell(userInput);
+            cout << SELECT_FIGURE_TEXT;
+            pair<uint16_t, uint16_t> figurePos = SelectCell(userInput);
+            figure = chessBoard.GetCellFigure(figurePos.first, figurePos.second);
 
-                isMoveValid = figure->MoveTo(movePos.first, movePos.second);
-                if (!isMoveValid)
+            if (figure)
+            {
+                if (figure->GetTeam() == currentPlayer && figure->CanMove())
                 {
-                    cout << NOT_VALID_MOVE_TEXT;
+                    continue;
+                }
+                else
+                {
+                    figure = nullptr;
                 }
             }
+        }
+        
+        bool isMoveValid = false;
+        while (!isMoveValid)
+        {
+            cout << SELECT_MOVE_TEXT;
+            pair<uint16_t, uint16_t> movePos = SelectCell(userInput);
 
-            if (mCurrentPlayer == ChessTeam::White)
+            isMoveValid = figure->MoveTo(movePos.first, movePos.second);
+            if (!isMoveValid)
             {
-                mCurrentPlayer = ChessTeam::Black;
-            }
-            else if (mCurrentPlayer == ChessTeam::Black)
-            {
-                mCurrentPlayer = ChessTeam::White;
+                cout << NOT_VALID_MOVE_TEXT;
             }
         }
+
+        if (currentPlayer == ChessTeam::White)
+        {
+            currentPlayer = ChessTeam::Black;
+        }
+        else if (currentPlayer == ChessTeam::Black)
+        {
+            currentPlayer = ChessTeam::White;
+        }
+
+        gameStatus = chessBoard.GetGameStatus(currentPlayer);
+        if (gameStatus == GameStatus::CheckMate)
+        {
+            if (currentPlayer == ChessTeam::White)
+            {
+                winner = ChessTeam::Black;
+            }
+            else if (currentPlayer == ChessTeam::Black)
+            {
+                winner = ChessTeam::White;
+            }
+        }
+        else if (gameStatus == GameStatus::StaleMate)
+        {
+            winner = ChessTeam::Invalid;
+        }
     }
+    
+    cout << "Game is over!\n ";
+    if (winner == ChessTeam::Black)
+    {
+        cout << "Winner is: Black player!";
+    }
+    else if(winner == ChessTeam::White)
+    {
+        cout << "Winner is: White player!";
+    }
+    else
+    {
+        cout << "Result is Draw!";
+    }
+
+    cout << "\n\n\n";
 }
 
 pair<uint16_t, uint16_t> SelectCell(string& userInput)

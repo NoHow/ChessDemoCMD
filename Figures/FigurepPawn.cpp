@@ -2,6 +2,8 @@
 #include "../ChessBoard.h"
 #include <assert.h>
 #include <algorithm>
+#include <string>
+#include <iostream>
 
 FigurePawn::FigurePawn(ChessTeam team, uint16_t row, uint16_t column) :
     FigureBase(team, row, column)
@@ -11,15 +13,26 @@ FigurePawn::FigurePawn(ChessTeam team, uint16_t row, uint16_t column) :
 
 bool FigurePawn::MoveTo(uint16_t row, uint16_t column)
 {
-    if (!mChessBoard)
+    if (!BaseMoveTo(row, column))
     {
-        assert(("No Chessboard!", false));
         return false;
     }
 
-    MovesVector moves;
-    moves.reserve(4);
+    if (mFirstMove)
+    {
+        mFirstMove = false;
+    }
     
+    if (mCurrentRow == 0u || mCurrentRow == 7u)
+    {
+        mChessBoard->PromotePawn(mCurrentRow, mCurrentColumn);
+    }
+
+    return true;
+}
+
+void FigurePawn::GetPossibleMovements(MovesVector& moves, DirectionsVector& checkDirections, uint16_t checkLimit)
+{
     int16_t moveDirection = -1;
     if (mTeam == ChessTeam::Black)
     {
@@ -29,7 +42,7 @@ bool FigurePawn::MoveTo(uint16_t row, uint16_t column)
     const uint16_t boardSize = mChessBoard->GetBoardSize();
     uint16_t checkCellRow = mCurrentRow + moveDirection;
     uint16_t checkCellCol = mCurrentColumn;
-    
+
     if (checkCellRow < boardSize)
     {
         if (!mChessBoard->GetCellFigure(checkCellRow, checkCellCol))
@@ -68,23 +81,9 @@ bool FigurePawn::MoveTo(uint16_t row, uint16_t column)
             moves.emplace_back(checkCellRow, checkCellCol);
         }
     }
-    
-    bool isMoveValid = any_of(moves.begin(), moves.end(), [row, column](const pair<uint16_t, uint16_t>& move) {
-        return move.first == row && move.second == column;
-        });
+}
 
-    if (!isMoveValid)
-    {
-        return false;
-    }
-
-    MakeMove(row, column);
-
-    if (mFirstMove)
-    {
-        mFirstMove = false;
-    }
-    
-
-    return true;
+FigureType FigurePawn::GetFigureType() const
+{
+    return FigureType::Pawn;
 }

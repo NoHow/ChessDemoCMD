@@ -8,6 +8,13 @@
 using namespace std;
 using UniquePtrFigureVector = vector<unique_ptr<FigureBase>>;
 
+enum class GameStatus
+{
+    InGame,
+    CheckMate,
+    StaleMate
+};
+
 class FigureBase;
 
 class ChessBoard
@@ -23,10 +30,16 @@ public:
     void UndoLastMove();
     void KillFigure(uint16_t currentRow, uint16_t currentColumn);
 
+    void PromotePawn(uint16_t row, uint16_t column); 
+
+    GameStatus GetGameStatus(ChessTeam team);
+    bool IsInCheck(ChessTeam team);
+
 private:
     void AddLine(const string& pattern);
     void FillBoardWithFigure(FigureType type, uint16_t startingRow, uint16_t startingCol, bool doubleCope = true);
-
+    void GetTeamFigures(ChessTeam team, vector<FigureBase*>& figures) const;
+    
     unique_ptr<FigureBase> CreateFigure(FigureType type, ChessTeam team, uint16_t row, uint16_t column) const;
 private: 
     vector<UniquePtrFigureVector> mCells;

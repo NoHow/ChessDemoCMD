@@ -14,9 +14,16 @@ FigureKnight::FigureKnight(ChessTeam team, uint16_t row, uint16_t column) :
 	mCheckDirections.emplace_back(1, -2);
 	mCheckDirections.emplace_back(-2, -1);
 	mCheckDirections.emplace_back(-1, -2);
+
+	mCheckLimit = 1u;
 }
 
 bool FigureKnight::MoveTo(uint16_t row, uint16_t column)
 {
-    return BaseMoveTo(row, column, 1);
+    return BaseMoveTo(row, column, mCheckLimit);
+}
+
+FigureType FigureKnight::GetFigureType() const
+{
+	return FigureType::Knight;
 }

@@ -47,7 +47,7 @@ bool FigureBase::MoveTo(uint16_t row, uint16_t column)
 bool FigureBase::BaseMoveTo(uint16_t row, uint16_t column, uint16_t checkLimit)
 {
     MovesVector moves;
-    GetPossibleMovements(moves, mCheckDirections);
+    GetPossibleMovements(moves, mCheckDirections, checkLimit);
 
     bool isMoveValid = any_of(moves.begin(), moves.end(), [row, column](const pair<uint16_t, uint16_t>& move) {
         return move.first == row && move.second == column;
@@ -60,7 +60,50 @@ bool FigureBase::BaseMoveTo(uint16_t row, uint16_t column, uint16_t checkLimit)
 
     MakeMove(row, column);
 
+    if (mChessBoard->IsInCheck(mTeam))
+    {
+        mChessBoard->UndoLastMove();
+        return false;
+    }
+
     return true;
+}
+
+bool FigureBase::CanMoveTo(uint16_t row, uint16_t column)
+{
+    MovesVector moves;
+    GetPossibleMovements(moves, mCheckDirections, mCheckLimit);
+
+    bool isMoveValid = any_of(moves.begin(), moves.end(), [row, column](const pair<uint16_t, uint16_t>& move) {
+        return move.first == row && move.second == column;
+        });
+
+    if (!isMoveValid)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool FigureBase::CanMove()
+{
+    MovesVector moves;
+    GetPossibleMovements(moves, mCheckDirections, mCheckLimit);
+
+    for (const auto& move : moves)
+    {
+        MakeMove(move.first, move.second);
+
+        if (!mChessBoard->IsInCheck(mTeam))
+        {
+            mChessBoard->UndoLastMove();
+            return true;
+        }
+        mChessBoard->UndoLastMove();
+    }
+
+    return false;
 }
 
 void FigureBase::MakeMove(uint16_t row, uint16_t column)
@@ -105,6 +148,11 @@ void FigureBase::GetPossibleMovements(MovesVector& moves, DirectionsVector& chec
 pair<uint16_t, uint16_t> FigureBase::GetLastPosition() const
 {
     return make_pair(mCurrentRow, mCurrentColumn);
+}
+
+FigureType FigureBase::GetFigureType() const
+{
+    return FigureType::Invalid;
 }
 
 void FigureBase::SetLastPosition(uint16_t row, uint16_t column)

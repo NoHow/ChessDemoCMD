@@ -11,3 +11,8 @@ FigureRook::FigureRook(ChessTeam team, uint16_t row, uint16_t column) :
     mCheckDirections.emplace_back(-1, 0);
     mCheckDirections.emplace_back(0, -1);
 }
+
+FigureType FigureRook::GetFigureType() const
+{
+    return FigureType::Rook;
+}

@@ -11,3 +11,8 @@ FigureBishop::FigureBishop(ChessTeam team, uint16_t row, uint16_t column) :
     mCheckDirections.emplace_back(-1, 1);
     mCheckDirections.emplace_back(1, -1);
 }
+
+FigureType FigureBishop::GetFigureType() const
+{
+    return FigureType::Bishop;
+}

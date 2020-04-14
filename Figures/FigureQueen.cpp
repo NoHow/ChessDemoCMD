@@ -15,3 +15,8 @@ FigureQueen::FigureQueen(ChessTeam team, uint16_t row, uint16_t column) :
     mCheckDirections.emplace_back(-1, 1);
     mCheckDirections.emplace_back(1, -1);
 }
+
+FigureType FigureQueen::GetFigureType() const
+{
+    return FigureType::Queen;
+}
