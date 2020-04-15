@@ -24,16 +24,7 @@ ChessBoard::ChessBoard()
 
     FigureBase::SetChessBoard(this);
 
-    FillBoardWithFigure(FigureType::Rook, 0, 0);
-    FillBoardWithFigure(FigureType::Knight, 0, 1);
-    FillBoardWithFigure(FigureType::Bishop, 0, 2);
-    FillBoardWithFigure(FigureType::Queen, 0, 3, false);
-    FillBoardWithFigure(FigureType::King, 0, 4, false);
-
-    FillBoardWithFigure(FigureType::Pawn, 1, 0);
-    FillBoardWithFigure(FigureType::Pawn, 1, 1);
-    FillBoardWithFigure(FigureType::Pawn, 1, 2);
-    FillBoardWithFigure(FigureType::Pawn, 1, 3);
+    InitFigures();
 }
 
 void ChessBoard::DrawBoard()
@@ -78,23 +69,28 @@ void ChessBoard::DrawBoard()
     mDrawBuffer.clear();
 }
 
-bool ChessBoard::SaveBoard()
+bool ChessBoard::SaveBoard(const ChessTeam& currentPlayer)
 {
-    const size_t bufferSize = 128;
+    const size_t bufferSize = 256;
     char* buffer = new char[bufferSize];
 
     size_t currentBufPos = 0;
+
+    buffer[currentBufPos++] = static_cast<char>(currentPlayer);
     for (const auto& row : mCells)
     {
         for (const auto& figure : row)
         {
             FigureType type = FigureType::NoFigure;
+            ChessTeam team = ChessTeam::Invalid;
             if (figure)
             {
                 type = figure->GetFigureType();
+                team = figure->GetTeam();
             }
             
             buffer[currentBufPos++] = static_cast<char>(type);
+            buffer[currentBufPos++] = static_cast<char>(team);
         }
     }
 
@@ -113,9 +109,9 @@ bool ChessBoard::SaveBoard()
     return success;
 }
 
-bool ChessBoard::LoadBoard()
+bool ChessBoard::LoadBoard(ChessTeam& currentPlayer)
 {
-    const size_t bufferSize = 128;
+    const size_t bufferSize = 256;
     char* buffer = new char[bufferSize];
 
     ifstream file("save.bin", ios::binary|ios::ate);
@@ -123,8 +119,8 @@ bool ChessBoard::LoadBoard()
     bool success = false;
     if (file.is_open())
     {
-        size_t fileSize = file.tellg();
-        if (fileSize == mBoardSize * mBoardSize)
+        auto fileSize = file.tellg();
+        if (fileSize >= 0)
         {
             file.seekg(0, ios::beg);
 
@@ -136,21 +132,25 @@ bool ChessBoard::LoadBoard()
 
     if (success)
     {
+        size_t bufferPos = 0;
+        currentPlayer = static_cast<ChessTeam>(buffer[bufferPos++]);
+
         for (uint16_t row = 0; row < mBoardSize; ++row)
         {
             for (uint16_t col = 0; col < mBoardSize; ++col)
             {
-                FigureType type = static_cast<FigureType>(buffer[row * mBoardSize + col]);
+                FigureType type = static_cast<FigureType>(buffer[bufferPos++]);
 
                 if (type != FigureType::NoFigure)
                 {
-                    mCells[row][col] = CreateFigure(type, ChessTeam::White, row, col);
+                    ChessTeam team = static_cast<ChessTeam>(buffer[bufferPos]);
+                    mCells[row][col] = CreateFigure(type, team, row, col);
                 }
                 else
                 {
                     mCells[row][col].reset(nullptr);
                 }
-                
+                ++buffer;
             }
         }
     }
@@ -426,4 +426,34 @@ void ChessBoard::FillBoardWithFigure(FigureType type, uint16_t startingRow, uint
             mCells[spawnLoc.first][spawnLoc.second] = CreateFigure(type, ChessTeam::White, spawnLoc.first, spawnLoc.second);
         }
     }
+}
+
+void ChessBoard::ResetBoard()
+{
+    for (auto& row : mCells)
+    {
+        for (auto& figure : row)
+        {
+            if (figure)
+            {
+                figure.reset(nullptr);
+            }
+        }
+    }
+
+    InitFigures();
+}
+
+void ChessBoard::InitFigures()
+{
+    FillBoardWithFigure(FigureType::Rook, 0, 0);
+    FillBoardWithFigure(FigureType::Knight, 0, 1);
+    FillBoardWithFigure(FigureType::Bishop, 0, 2);
+    FillBoardWithFigure(FigureType::Queen, 0, 3, false);
+    FillBoardWithFigure(FigureType::King, 0, 4, false);
+
+    FillBoardWithFigure(FigureType::Pawn, 1, 0);
+    FillBoardWithFigure(FigureType::Pawn, 1, 1);
+    FillBoardWithFigure(FigureType::Pawn, 1, 2);
+    FillBoardWithFigure(FigureType::Pawn, 1, 3);
 }

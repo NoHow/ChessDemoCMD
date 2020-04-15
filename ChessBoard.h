@@ -23,8 +23,9 @@ public:
     ChessBoard();
 
     void DrawBoard();
-    bool SaveBoard();
-    bool LoadBoard();
+    bool SaveBoard(const ChessTeam& currentPlayer);
+    bool LoadBoard(ChessTeam& currentPlayer);
+    void ResetBoard();
 
     uint16_t GetBoardSize() const;
     FigureBase* GetCellFigure(uint16_t row, uint16_t column) const;
@@ -41,6 +42,7 @@ private:
     void AddLine(const string& pattern);
     void FillBoardWithFigure(FigureType type, uint16_t startingRow, uint16_t startingCol, bool doubleCope = true);
     void GetTeamFigures(ChessTeam team, vector<FigureBase*>& figures) const;
+    void InitFigures();
     
     unique_ptr<FigureBase> CreateFigure(FigureType type, ChessTeam team, uint16_t row, uint16_t column) const;
 private: 

@@ -54,13 +54,15 @@ int main()
 
         switch (userState)
         {
-        case UserState::Invalid:
-            break;
         case UserState::Restart:
+        {
+            chessBoard.ResetBoard();
+            currentPlayer = ChessTeam::White;
             break;
+        }
         case UserState::SaveGame:
         {
-            if (chessBoard.SaveBoard())
+            if (chessBoard.SaveBoard(currentPlayer))
             {
                 cout << SUCCESS_GAME_SAVE_TEXT;
             }
@@ -72,7 +74,7 @@ int main()
         }
         case UserState::LoadGame:
         {
-            chessBoard.LoadBoard();
+            chessBoard.LoadBoard(currentPlayer);
             break;
         }
         case UserState::Move:
