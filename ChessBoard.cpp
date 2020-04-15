@@ -120,7 +120,7 @@ bool ChessBoard::LoadBoard(ChessTeam& currentPlayer)
     if (file.is_open())
     {
         auto fileSize = file.tellg();
-        if (fileSize >= 0)
+        if (fileSize > 0)
         {
             file.seekg(0, ios::beg);
 
