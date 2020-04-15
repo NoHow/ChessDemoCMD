@@ -17,6 +17,7 @@ enum class ChessTeam
 enum class FigureType
 {
     Invalid,
+    NoFigure,
     Bishop,
     King,
     Knight,

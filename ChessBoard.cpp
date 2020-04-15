@@ -1,6 +1,7 @@
 #include "ChessBoard.h"
 #include <iostream>
 #include <assert.h>
+#include <fstream>
 #include "Figures/FigureBase.h"
 #include "Figures/FigureBishop.h"
 #include "Figures/FigureKing.h"
@@ -75,6 +76,86 @@ void ChessBoard::DrawBoard()
 
     cout << mDrawBuffer;
     mDrawBuffer.clear();
+}
+
+bool ChessBoard::SaveBoard()
+{
+    const size_t bufferSize = 128;
+    char* buffer = new char[bufferSize];
+
+    size_t currentBufPos = 0;
+    for (const auto& row : mCells)
+    {
+        for (const auto& figure : row)
+        {
+            FigureType type = FigureType::NoFigure;
+            if (figure)
+            {
+                type = figure->GetFigureType();
+            }
+            
+            buffer[currentBufPos++] = static_cast<char>(type);
+        }
+    }
+
+    ofstream file("save.bin", ios::binary);
+
+    bool success = false;
+    if (file.is_open())
+    {
+        file.write(buffer, currentBufPos);
+        
+        file.close();
+        success = true;
+    }
+
+    delete[] buffer;
+    return success;
+}
+
+bool ChessBoard::LoadBoard()
+{
+    const size_t bufferSize = 128;
+    char* buffer = new char[bufferSize];
+
+    ifstream file("save.bin", ios::binary|ios::ate);
+
+    bool success = false;
+    if (file.is_open())
+    {
+        size_t fileSize = file.tellg();
+        if (fileSize == mBoardSize * mBoardSize)
+        {
+            file.seekg(0, ios::beg);
+
+            file.read(buffer, fileSize);
+            file.close();
+            success = true;
+        }
+    }
+
+    if (success)
+    {
+        for (uint16_t row = 0; row < mBoardSize; ++row)
+        {
+            for (uint16_t col = 0; col < mBoardSize; ++col)
+            {
+                FigureType type = static_cast<FigureType>(buffer[row * mBoardSize + col]);
+
+                if (type != FigureType::NoFigure)
+                {
+                    mCells[row][col] = CreateFigure(type, ChessTeam::White, row, col);
+                }
+                else
+                {
+                    mCells[row][col].reset(nullptr);
+                }
+                
+            }
+        }
+    }
+
+    return success;
 }
 
 uint16_t ChessBoard::GetBoardSize() const

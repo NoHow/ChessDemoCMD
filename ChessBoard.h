@@ -23,6 +23,8 @@ public:
     ChessBoard();
 
     void DrawBoard();
+    bool SaveBoard();
+    bool LoadBoard();
 
     uint16_t GetBoardSize() const;
     FigureBase* GetCellFigure(uint16_t row, uint16_t column) const;
