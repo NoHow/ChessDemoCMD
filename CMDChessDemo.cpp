@@ -12,7 +12,7 @@ namespace
     const string SELECT_ROW_TEXT = "Row: ";
     const string SELECT_COLUMN_TEXT = "Column: ";
     const string SELECT_MOVE_TEXT = "Please select where you want to move selected figure!\n";
-    const string SELECT_USER_STATE_TEXT = "\nWhat are we going to do next? (Move, Restart, Save, Load, Exit): ";
+    const string SELECT_USER_STATE_TEXT = "\nWhat are we going to do next? (Move[M], Restart[R], Save[S], Load[L], Exit[E]): ";
 
     const string SUCCESS_GAME_SAVE_TEXT = "Game is saved!\n";
     const string FAIL_GAME_SAVE_TEXT = "Error: couldnt't save game for some reason :(";
@@ -178,23 +178,23 @@ UserState GetUserState(string& buffer)
         cout << SELECT_USER_STATE_TEXT;
         cin >> buffer;
 
-        if (buffer == "Move")
+        if (buffer == "Move" || buffer == "M")
         {
             result = UserState::Move;
         }
-        else if (buffer == "Restart")
+        else if (buffer == "Restart" || buffer == "R")
         {
             result = UserState::Restart;
         }
-        else if (buffer == "Save")
+        else if (buffer == "Save" || buffer == "S")
         {
             result = UserState::SaveGame;
         }
-        else if (buffer == "Load")
+        else if (buffer == "Load" || buffer == "L")
         {
             result = UserState::LoadGame;
         }
-        else if (buffer == "Exit")
+        else if (buffer == "Exit" || buffer == "E")
         {
             result = UserState::Exit;
         }
