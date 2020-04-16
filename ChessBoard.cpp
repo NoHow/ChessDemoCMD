@@ -10,6 +10,24 @@
 #include "Figures/FigureQueen.h"
 #include "Figures/FigureRook.h"
 
+namespace
+{
+    //Draw elements
+    const string topBorder = "\xD1";
+    const string botBorder = "\xCF";
+    const string leftBorder = "\xC7";
+    const string rightBorder = "\xB6";
+    const string middleWall = "\xC5";
+    const string horizWall = "\xC4";
+    const string horizWall2 = "\xCD";
+    const string vertWall = "\xB3";
+    const string vertWall2 = "\xBA";
+    const string topLCorner = "\xC9";
+    const string topRCorner = "\xBB";
+    const string botRCorner = "\xBC";
+    const string botLCorner = "\xC8";
+}//namespace
+
 using namespace std;
 
 ChessBoard::ChessBoard() 
@@ -29,11 +47,12 @@ ChessBoard::ChessBoard()
 
 void ChessBoard::DrawBoard()
 {
-    AddLine("****");
+    DrawLine("*****");
     mDrawBuffer += "\n";
-    AddLine("****");
+    DrawLine("*****");
     mDrawBuffer += "\n";
 
+    //Draw Letters line
     mDrawBuffer += " ";
     for (size_t row = 0; row < mBoardSize; ++row)
     {
@@ -42,15 +61,24 @@ void ChessBoard::DrawBoard()
     }
 
     mDrawBuffer += "\n  ";
+
+    //Draw top border 
+    DrawLine(topLCorner + horizWall2 + topBorder + horizWall2 + topRCorner);
     for (size_t row = 0; row < mBoardSize; ++row)
     {
-        AddLine(" --");
-        mDrawBuffer += "\n" + to_string(row + 1u) + " ";
+        //Draw horizontal lines between cells;
+        if (row != 0u && row != mBoardSize)
+        {
+            DrawLine(leftBorder + horizWall + middleWall + horizWall + rightBorder);
+        }
 
+        //Draw numeration from left
+        mDrawBuffer += "\n" + to_string(row + 1u) + " " + vertWall2;
+
+        //Draw cell lines
         for (size_t col = 0; col < mBoardSize; ++col)
         {
             FigureBase* figure = mCells[row][col].get();
-            mDrawBuffer += "|";
             if (figure)
             {
                 mDrawBuffer += figure->GetFigureName();
@@ -59,11 +87,23 @@ void ChessBoard::DrawBoard()
             {
                 mDrawBuffer += "  ";
             }
+            mDrawBuffer += vertWall;
         }
-        mDrawBuffer += "|\n  ";
-    }
+        mDrawBuffer.replace(mDrawBuffer.end() - 1u, mDrawBuffer.end(), vertWall2);
 
-    AddLine(" --");
+        //Draw numeration from right
+        mDrawBuffer += to_string(row + 1u) + "\n  ";
+    }
+    //Draw bottom border
+    DrawLine(botLCorner + horizWall2 + botBorder + horizWall2 + botRCorner);
+
+    //Draw Letters line
+    mDrawBuffer += "\n ";
+    for (size_t row = 0; row < mBoardSize; ++row)
+    {
+        mDrawBuffer += "  ";
+        mDrawBuffer += static_cast<char>(65) + static_cast<char>(row);
+    }
 
     cout << mDrawBuffer;
     mDrawBuffer.clear();
@@ -271,12 +311,26 @@ void ChessBoard::PromotePawn(uint16_t row, uint16_t column)
     mCells[row][column] = std::move(newFigure);
 }
 
-void ChessBoard::AddLine(const string& pattern)
+void ChessBoard::DrawLine(const string& pattern)
 {
-    for (size_t col = 0; col < mBoardSize; ++col)
+    if (pattern.size() != 5u)
     {
-        mDrawBuffer += pattern;
+        assert(("Input is not valid!", false));
+        return;
     }
+
+    const string& firstPart = pattern.substr(0, 2);
+    const string& middlePart = pattern.substr(1, 3);
+    const string& endingPart = pattern.substr(3, 2);
+    
+    mDrawBuffer += firstPart;
+    
+    for (size_t col = 0; col < (mBoardSize - 1u); ++col)
+    {
+        mDrawBuffer += middlePart;
+    }
+
+    mDrawBuffer += endingPart;
 }
 
 unique_ptr<FigureBase> ChessBoard::CreateFigure(FigureType type, ChessTeam team, uint16_t row, uint16_t column) const

@@ -39,7 +39,7 @@ public:
     bool IsInCheck(ChessTeam team);
 
 private:
-    void AddLine(const string& pattern);
+    void DrawLine(const string& pattern);
     void FillBoardWithFigure(FigureType type, uint16_t startingRow, uint16_t startingCol, bool doubleCope = true);
     void GetTeamFigures(ChessTeam team, vector<FigureBase*>& figures) const;
     void InitFigures();
